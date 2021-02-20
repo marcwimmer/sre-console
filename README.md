@@ -1,0 +1,1 @@
+Allows talking to bots.
