@@ -16,10 +16,14 @@ FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger('')  # root handler
 
-instructions = []
 myid = f"botchat-{socket.gethostname()}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
 client = None
+
+def chat(text, bot=None):
+    if bot:
+        text += "/" + bot
+    _send_topic(text)
 
 def get_broker():
     file = Path("/etc/sre/autobot.conf")
@@ -33,15 +37,14 @@ def _send_topic(topic, payload=None):
     topic = f"_autobot/console/{myid}/" + topic
     client.publish(topic, payload=payload, qos=2)
 
-def whereAreYou():
-    print("Asking bots to tell where they are...")
-    _send_topic('whereAreYou')
-
 def on_connect(client, userdata, flags, reason, properties):
     client.subscribe(f"_autobot/console/{myid}/#")
 
 def on_message(client, userdata, msg):
     try:
+        if 'capabilities' in msg.topic.split("/"):
+            print(f"Name: {msg.topic.split('/')[-1]}")
+            print(msg.payload.decode('utf-8'))
         if msg.topic.split("/")[-1] == 'answer':
             value = msg.payload.decode("utf-8")
             print(value)
@@ -68,12 +71,13 @@ t = threading.Thread(target=start_broker)
 t.daemon = True
 t.start()
 
-instructions.append("  whereAreYou()")
+while not client:
+    time.sleep(0.1)
 
 
 if __name__ == '__main__':
     from IPython import get_ipython
-    print("Commands:")
-    for instruction in instructions:
-        print(f"  - {instruction}")
+    print("Use chat('string') to communicate. Bots are now asks for what they understand.")
+    print("To talk to a specific bot: chat('string', bot='botid'")
+    _send_topic("ask_for_capabilities")
     embed(banner1='')
