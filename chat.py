@@ -11,6 +11,7 @@ from IPython.core.display import display, HTML
 import sys
 from pathlib import Path
 import json
+import argparse
 import logging
 FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -19,6 +20,23 @@ logger = logging.getLogger('')  # root handler
 myid = f"botchat-{socket.gethostname()}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
 client = None
+
+parser = argparse.ArgumentParser(description='Bot SRE', epilog="""
+
+Chat with autobots.
+
+""")
+parser.add_argument('-s', metavar="Script", type=str, required=False)
+parser.add_argument('-l', metavar="Level", type=str, required=False, default='INFO')
+parser.add_argument('-d', '--daemon', action="store_true")
+parser.add_argument('-i', '--install', required=False, action='store_true')
+parser.add_argument('-n', '--new', required=False)
+parser.add_argument('-ir', '--install-requirements', required=False)
+parser.add_argument('-t', '--testbot', required=False)
+parser.add_argument('--list-bots', action="store_true")
+parser.add_argument('--pull-bots', action="store_true")
+
+args = parser.parse_args()
 
 def chat(text, bot=None):
     if bot:
